@@ -1,0 +1,2088 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    :root {
+      --bg: #f7f3ea;
+      --panel: #ffffff;
+      --green-900: #123f35;
+      --green-800: #185544;
+      --green-700: #226b57;
+      --green-500: #3a8a70;
+      --green-200: #dcebe3;
+      --gold-700: #a87922;
+      --gold-500: #d5aa52;
+      --gold-200: #f4e7c6;
+      --red: #d85b4d;
+      --orange: #d88a25;
+      --text: #26332f;
+      --muted: #7b827f;
+      --line: #e7ddd0;
+      --shadow: 0 14px 40px rgba(33, 51, 44, 0.12);
+      --shadow-soft: 0 8px 24px rgba(33, 51, 44, 0.08);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "Noto Sans TC",
+        "Microsoft JhengHei",
+        sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(214, 179, 99, 0.18), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(58, 138, 112, 0.14), transparent 34%),
+        var(--bg);
+    }
+
+    button,
+    input,
+    select { font: inherit; }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      margin: 0 auto;
+      padding-bottom: calc(92px + var(--safe-bottom));
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.62), rgba(247,243,234,0.92)),
+        var(--bg);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .top-hero {
+      padding: 22px 18px 34px;
+      color: white;
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,0.18), transparent 30%),
+        linear-gradient(135deg, #154a3d, #1d6a55);
+      border-bottom-left-radius: 34px;
+      border-bottom-right-radius: 34px;
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-title {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      text-align: center;
+      font-size: 25px;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+    }
+
+    .hero-subtitle {
+      position: relative;
+      z-index: 1;
+      margin-top: 8px;
+      text-align: center;
+      color: rgba(255,255,255,0.84);
+      font-size: 14px;
+      letter-spacing: 0.08em;
+    }
+
+    .page {
+      display: none;
+      padding: 0 16px 18px;
+      margin-top: -18px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .page.active { display: block; }
+
+    .card {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(231, 221, 208, 0.9);
+      border-radius: 20px;
+      box-shadow: var(--shadow-soft);
+      padding: 17px;
+      margin-bottom: 14px;
+      backdrop-filter: blur(10px);
+    }
+
+    .identity-card {
+      display: grid;
+      grid-template-columns: 66px 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .avatar {
+      width: 66px;
+      height: 66px;
+      border-radius: 22px;
+      background:
+        radial-gradient(circle at 50% 34%, #f1d6a0 0 18%, transparent 19%),
+        radial-gradient(circle at 50% 45%, #26332f 0 18%, transparent 19%),
+        radial-gradient(circle at 50% 80%, #3a8a70 0 45%, transparent 46%),
+        #efe5d1;
+      border: 1px solid #eadfcf;
+    }
+
+    .field-group {
+      display: grid;
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+
+    .input,
+    .select {
+      width: 100%;
+      height: 46px;
+      border: 1px solid #dfd4c6;
+      border-radius: 12px;
+      background: #fff;
+      color: var(--text);
+      padding: 0 13px;
+      outline: none;
+      font-weight: 700;
+    }
+
+    .input:focus,
+    .select:focus {
+      border-color: var(--green-500);
+      box-shadow: 0 0 0 4px rgba(58, 138, 112, 0.14);
+    }
+
+    .auth-hint {
+      margin-top: -2px;
+      color: var(--gold-700);
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1.45;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 22px 4px 13px;
+      font-size: 22px;
+      color: var(--green-900);
+      font-weight: 950;
+      letter-spacing: 0.04em;
+    }
+
+    .section-title::before {
+      content: "";
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 55% 40%, var(--gold-500) 0 22%, transparent 24%),
+        var(--gold-200);
+    }
+
+    .task-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .task-title-wrap {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .task-icon {
+      flex: 0 0 auto;
+      width: 48px;
+      height: 48px;
+      border-radius: 17px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #e5f0ea, #f7ecd0);
+      font-size: 25px;
+    }
+
+    .task-title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 950;
+      color: var(--green-900);
+    }
+
+    .task-desc {
+      margin: 5px 0 0;
+      color: #6e7672;
+      font-size: 13px;
+      line-height: 1.4;
+      font-weight: 700;
+    }
+
+    .status-pill {
+      flex: 0 0 auto;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--orange);
+      background: #fff1dc;
+      white-space: nowrap;
+    }
+
+    .status-pill.done {
+      color: var(--green-800);
+      background: var(--green-200);
+    }
+
+    .status-pill.locked,
+    .status-pill.prayer-done {
+      color: #fff;
+      background: linear-gradient(135deg, var(--green-800), var(--gold-700));
+    }
+
+    .reading-plan {
+      margin: 12px 0 14px;
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid #eadfcf;
+      background:
+        linear-gradient(135deg, rgba(244, 231, 198, 0.62), rgba(220, 235, 227, 0.52)),
+        #fff;
+    }
+
+    .reading-week {
+      color: var(--gold-700);
+      font-size: 13px;
+      font-weight: 950;
+      letter-spacing: 0.04em;
+    }
+
+    .reading-text {
+      margin-top: 6px;
+      color: var(--green-900);
+      font-size: 20px;
+      font-weight: 950;
+      line-height: 1.45;
+    }
+
+    .choice-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .choice-btn {
+      height: 52px;
+      border-radius: 15px;
+      background: #fff;
+      border: 1px solid #d9d0c5;
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 950;
+      box-shadow: 0 2px 10px rgba(41, 51, 47, 0.04);
+    }
+
+    .choice-btn.active {
+      color: #fff;
+      border-color: var(--green-700);
+      background: linear-gradient(135deg, var(--green-700), var(--green-500));
+      box-shadow: 0 8px 20px rgba(34, 107, 87, 0.24);
+    }
+
+    .choice-btn.locked,
+    .choice-btn:disabled {
+      opacity: 0.45;
+      background: #ece8df;
+      color: #888;
+      border-color: #ddd3c8;
+      box-shadow: none;
+    }
+
+    .lock-notice,
+    .prayer-complete-notice {
+      margin: 12px 0 14px;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(58, 138, 112, 0.35);
+      background:
+        linear-gradient(135deg, rgba(220, 235, 227, 0.95), rgba(244, 231, 198, 0.82));
+      box-shadow: 0 8px 20px rgba(34, 107, 87, 0.12);
+    }
+
+    .lock-title,
+    .prayer-complete-title {
+      color: var(--green-900);
+      font-size: 17px;
+      font-weight: 950;
+      letter-spacing: 0.04em;
+    }
+
+    .lock-text,
+    .prayer-complete-text {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.5;
+    }
+
+    .prayer-grid {
+      display: grid;
+      grid-template-columns: 1fr 94px;
+      gap: 12px;
+      align-items: end;
+    }
+
+    .prayer-meter {
+      width: 94px;
+      height: 94px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background:
+        conic-gradient(var(--green-700) 0deg, var(--green-700) var(--meter-deg, 0deg), #ece6da var(--meter-deg, 0deg), #ece6da 360deg);
+      position: relative;
+    }
+
+    .prayer-meter::before {
+      content: "";
+      position: absolute;
+      width: 74px;
+      height: 74px;
+      border-radius: 50%;
+      background: #fff;
+    }
+
+    .meter-text {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      color: var(--text);
+      font-weight: 950;
+      line-height: 1.05;
+      font-size: 25px;
+    }
+
+    .meter-text small {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .hint-text {
+      margin-top: 9px;
+      color: var(--gold-700);
+      font-weight: 950;
+      font-size: 14px;
+    }
+
+    .submit-btn,
+    .primary-btn {
+      width: 100%;
+      height: 54px;
+      border-radius: 16px;
+      color: #fff;
+      background: linear-gradient(135deg, #1d6a55, #2d846b);
+      font-size: 17px;
+      font-weight: 950;
+      letter-spacing: 0.04em;
+      box-shadow: 0 12px 26px rgba(29, 106, 85, 0.24);
+    }
+
+    .summary-card {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.94), rgba(248, 244, 235, 0.94));
+    }
+
+    .summary-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .summary-main {
+      margin-top: 5px;
+      color: var(--green-900);
+      font-size: 18px;
+      font-weight: 950;
+    }
+
+    .big-number {
+      font-size: 34px;
+      font-weight: 950;
+      color: var(--gold-700);
+    }
+
+    .distribution-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 13px;
+    }
+
+    .distribution-title h3 {
+      margin: 0;
+      font-size: 18px;
+      color: var(--green-900);
+      font-weight: 950;
+    }
+
+    .distribution-title span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-align: right;
+    }
+
+    .dist-row {
+      display: grid;
+      grid-template-columns: 88px 1fr 44px;
+      gap: 10px;
+      align-items: center;
+      margin: 12px 0;
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .dist-bar {
+      height: 13px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #eee9df;
+    }
+
+    .dist-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--green-500), var(--green-700));
+    }
+
+    .dist-row[data-level="mid"] .dist-fill {
+      background: linear-gradient(90deg, #adc684, #d5aa52);
+    }
+
+    .dist-row[data-level="low"] .dist-fill {
+      background: linear-gradient(90deg, #e49c48, #d85b4d);
+    }
+
+    .dist-count {
+      text-align: right;
+      color: var(--green-900);
+      font-weight: 950;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+      background: #fff;
+      text-align: center;
+    }
+
+    .circle {
+      width: 88px;
+      height: 88px;
+      margin: 0 auto 9px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background:
+        conic-gradient(var(--green-700) 0deg, var(--green-700) var(--deg, 0deg), #ece6da var(--deg, 0deg), #ece6da 360deg);
+      position: relative;
+    }
+
+    .circle.gold {
+      background:
+        conic-gradient(var(--gold-500) 0deg, var(--gold-500) var(--deg, 0deg), #ece6da var(--deg, 0deg), #ece6da 360deg);
+    }
+
+    .circle::before {
+      content: "";
+      position: absolute;
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: #fff;
+    }
+
+    .circle span {
+      position: relative;
+      z-index: 1;
+      font-size: 24px;
+      font-weight: 950;
+      color: var(--green-900);
+    }
+
+    .metric-title {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .record-table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 14px;
+      font-size: 12px;
+      background: #fff;
+    }
+
+    .record-table th,
+    .record-table td {
+      padding: 10px 7px;
+      border-bottom: 1px solid #eee8dd;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .record-table th {
+      color: var(--muted);
+      font-weight: 950;
+      background: #f8f3e9;
+    }
+
+    .record-table td {
+      font-weight: 800;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 54px;
+      padding: 4px 7px;
+      border-radius: 999px;
+      background: #f1efe9;
+      color: #6f7773;
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .tag.ok {
+      background: var(--green-200);
+      color: var(--green-800);
+    }
+
+    .tag.bad {
+      background: #ffe6df;
+      color: #bd4b3f;
+    }
+
+    .tag.warn {
+      background: #fff0d7;
+      color: var(--gold-700);
+    }
+
+    .bottom-nav {
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      padding: 9px 12px calc(9px + var(--safe-bottom));
+      background: rgba(255, 255, 255, 0.94);
+      border-top: 1px solid rgba(231, 221, 208, 0.9);
+      box-shadow: 0 -10px 26px rgba(33, 51, 44, 0.08);
+      backdrop-filter: blur(14px);
+      z-index: 50;
+    }
+
+    .nav-btn {
+      height: 58px;
+      border-radius: 18px;
+      background: transparent;
+      color: #868b88;
+      font-weight: 900;
+      display: grid;
+      place-items: center;
+      gap: 2px;
+      font-size: 12px;
+    }
+
+    .nav-icon {
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .nav-btn.active {
+      background: #eef6f2;
+      color: var(--green-800);
+    }
+
+    .empty-state {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+      text-align: center;
+      padding: 18px 8px;
+      line-height: 1.7;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(92px + var(--safe-bottom));
+      transform: translateX(-50%) translateY(20px);
+      width: calc(100% - 32px);
+      max-width: 448px;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 80;
+      padding: 13px 15px;
+      border-radius: 16px;
+      background: rgba(18, 63, 53, 0.94);
+      color: white;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+      transition: 0.22s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: grid;
+      place-items: center;
+      background: rgba(17, 28, 24, 0.42);
+      padding: 18px 16px calc(18px + var(--safe-bottom));
+    }
+
+    .modal-backdrop.hidden {
+      display: none;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 448px;
+      border-radius: 26px;
+      padding: 19px;
+      background: #fff;
+      box-shadow: 0 22px 70px rgba(12, 25, 20, 0.28);
+      text-align: center;
+    }
+
+    .modal-title {
+      margin: 0 0 8px;
+      font-size: 21px;
+      color: var(--green-900);
+      font-weight: 950;
+      text-align: center;
+    }
+
+    .modal-body {
+      color: #59605d;
+      font-size: 14px;
+      line-height: 1.75;
+      font-weight: 780;
+      text-align: center;
+    }
+
+    .setup-box {
+      margin-top: 16px;
+      padding: 15px;
+      border-radius: 18px;
+      background: #f8f3e9;
+      border: 1px solid #eadfcf;
+      display: grid;
+      gap: 10px;
+      text-align: center;
+    }
+
+    .setup-box .field {
+      text-align: center;
+    }
+
+    .setup-box .field label {
+      text-align: center;
+    }
+
+    .setup-box .input {
+      text-align: center;
+    }
+
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 15px;
+      justify-content: center;
+    }
+
+    .modal-actions button {
+      text-align: center;
+    }
+
+    .modal-actions:has(.secondary-btn.hidden) {
+      grid-template-columns: minmax(140px, 220px);
+      justify-content: center;
+    }
+
+    .secondary-btn {
+      height: 48px;
+      border-radius: 14px;
+      background: #f1eee8;
+      color: #59605d;
+      font-weight: 950;
+    }
+
+    .my-code-note {
+      margin: -3px 0 4px;
+      color: var(--gold-700);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (min-width: 720px) {
+      body { padding: 20px 0; }
+
+      .app {
+        min-height: calc(100vh - 40px);
+        border-radius: 36px;
+        box-shadow: 0 22px 70px rgba(33, 51, 44, 0.16);
+        overflow: hidden;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header class="top-hero">
+      <h1 class="hero-title" id="appTitle">讀經與禱告回報</h1>
+      <div class="hero-subtitle" id="todayText">載入中...</div>
+    </header>
+
+    <section id="page-report" class="page active">
+      <div class="card identity-card">
+        <div class="avatar"></div>
+
+        <div class="field-group">
+          <div class="field">
+            <label for="reportSexSelect">性別</label>
+            <select id="reportSexSelect" class="select">
+              <option value="">請先選擇性別</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="reportName">姓名</label>
+            <select id="reportName" class="select" disabled>
+              <option value="">請先選擇性別</option>
+            </select>
+          </div>
+
+          <div id="reportCodeWrap" class="field hidden">
+            <label for="reportCode">查詢碼</label>
+            <input id="reportCode" class="input" type="password" inputmode="numeric" placeholder="請輸入查詢碼才能回報">
+            <div id="reportAuthHint" class="auth-hint">此姓名已設定查詢碼，請先輸入查詢碼。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">回報內容</div>
+
+      <div class="card">
+        <div class="task-head">
+          <div class="task-title-wrap">
+            <div class="task-icon">📖</div>
+            <div>
+              <h2 class="task-title">讀經進度</h2>
+              <p class="task-desc">以週為單位回報，可選週次補回報</p>
+            </div>
+          </div>
+          <div id="readingPill" class="status-pill">未回報</div>
+        </div>
+
+        <div class="field">
+          <label for="readingWeekSelect">選擇讀經週次</label>
+          <select id="readingWeekSelect" class="select">
+            <option value="">載入中...</option>
+          </select>
+        </div>
+
+        <div class="reading-plan">
+          <div class="reading-week" id="readingWeekText">讀經週次載入中...</div>
+          <div class="reading-text" id="readingProgressText">讀經進度載入中...</div>
+        </div>
+
+        <div id="readingLockNotice" class="lock-notice hidden">
+          <div class="lock-title">已完成・已鎖定</div>
+          <div class="lock-text">本週讀經已完成，不能再修改。</div>
+        </div>
+
+        <div class="choice-row">
+          <button type="button" class="choice-btn" data-reading="完成">✓ 完成</button>
+          <button type="button" class="choice-btn" data-reading="未完成">未完成</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="task-head">
+          <div class="task-title-wrap">
+            <div class="task-icon">🙏</div>
+            <div>
+              <h2 class="task-title">禱告時間</h2>
+              <p class="task-desc">每日目標：20 分鐘，禱告日期自 5/25 起</p>
+            </div>
+          </div>
+          <div id="prayerPill" class="status-pill">未回報</div>
+        </div>
+
+        <div class="field" style="margin-bottom:12px;">
+          <label for="prayerDateSelect">選擇禱告日期</label>
+          <select id="prayerDateSelect" class="select">
+            <option value="">載入中...</option>
+          </select>
+        </div>
+
+        <div id="prayerCompleteNotice" class="prayer-complete-notice hidden">
+          <div class="prayer-complete-title" id="prayerCompleteTitle">該日禱告已達標</div>
+          <div class="prayer-complete-text" id="prayerCompleteText">已填入該日已回報的分鐘數。</div>
+        </div>
+
+        <div class="prayer-grid">
+          <div>
+            <div class="field">
+              <label for="prayerMinutes">禱告分鐘數</label>
+              <input id="prayerMinutes" class="input" type="number" inputmode="numeric" min="0" placeholder="輸入分鐘數">
+            </div>
+            <div class="hint-text" id="prayerHint">還差 20 分鐘</div>
+          </div>
+
+          <div class="prayer-meter" id="prayerMeter">
+            <div class="meter-text">
+              <span id="meterMinutes">0</span>
+              <small>/20</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button id="submitReportBtn" class="submit-btn" type="button">送出回報</button>
+    </section>
+
+    <section id="page-completion" class="page">
+      <div class="card summary-card">
+        <div>
+          <div class="summary-label">整體進度期間</div>
+          <div class="summary-main" id="completionPeriodText">載入中...</div>
+          <div class="summary-label" id="completionElapsedText">統計中...</div>
+        </div>
+        <div>
+          <div class="summary-label">總人數</div>
+          <div class="big-number" id="completionTotal">0</div>
+        </div>
+      </div>
+
+      <div id="completionContent">
+        <div class="empty-state">正在載入完成度...</div>
+      </div>
+    </section>
+
+    <section id="page-my" class="page">
+      <div class="card field-group">
+        <div class="field">
+          <label for="mySexSelect">性別</label>
+          <select id="mySexSelect" class="select">
+            <option value="">請先選擇性別</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="myName">姓名</label>
+          <select id="myName" class="select" disabled>
+            <option value="">請先選擇性別</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="myCode">查詢碼</label>
+          <div class="my-code-note">第一次回報進度時可設定</div>
+          <input id="myCode" class="input" type="password" inputmode="numeric" placeholder="請輸入查詢碼">
+        </div>
+
+        <button id="queryMyBtn" type="button" class="primary-btn">查詢我的紀錄</button>
+      </div>
+
+      <div id="myResult"></div>
+    </section>
+
+    <nav class="bottom-nav">
+      <button type="button" class="nav-btn active" data-page="report">
+        <span class="nav-icon">⌂</span>
+        <span>今日回報</span>
+      </button>
+
+      <button type="button" class="nav-btn" data-page="completion">
+        <span class="nav-icon">▥</span>
+        <span>完成度</span>
+      </button>
+
+      <button type="button" class="nav-btn" data-page="my">
+        <span class="nav-icon">●</span>
+        <span>我的</span>
+      </button>
+    </nav>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <div id="modalBackdrop" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h2 class="modal-title" id="modalTitle">回報已完成</h2>
+      <div class="modal-body" id="modalBody"></div>
+
+      <div id="setupBox" class="setup-box hidden">
+        <div class="field">
+          <label for="setupCode">設定查詢碼</label>
+          <input id="setupCode" class="input" type="password" inputmode="numeric" placeholder="請輸入 4～6 碼數字">
+        </div>
+
+        <div class="field">
+          <label for="setupCodeConfirm">再次輸入</label>
+          <input id="setupCodeConfirm" class="input" type="password" inputmode="numeric" placeholder="請再次輸入查詢碼">
+        </div>
+
+        <button id="saveCodeBtn" type="button" class="primary-btn">設定查詢碼</button>
+      </div>
+
+      <div class="modal-actions">
+        <button id="closeModalBtn" type="button" class="secondary-btn">關閉</button>
+        <button id="laterCodeBtn" type="button" class="secondary-btn hidden">稍後再設定</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbylRyXlY4a3ZRkc_f9drQvUWe_STJ_j_IR4_jwBv1AuiASFbOB30gDNxbdUTe88WpLJnw/exec';
+    window.__INITIAL_DATA__ = null;
+  </script>
+
+  <script>
+    const state = {
+      members: [],
+      readingSchedule: [],
+      prayerDates: [],
+      prayerTarget: 20,
+      readingChoice: '',
+      readingTouched: false,
+      prayerTouched: false,
+      setupToken: '',
+      setupName: '',
+      reportAuthRequired: false,
+      reportAuthPassed: false,
+      reportControlsEnabled: false,
+      reportCodeTimer: null,
+      completionLoaded: false,
+      statusCache: Object.create(null)
+    };
+
+    document.addEventListener('DOMContentLoaded', init);
+
+    function init() {
+      bindEvents();
+
+      if (window.__INITIAL_DATA__) {
+        hydrateInitialData(window.__INITIAL_DATA__);
+      } else {
+        loadInitialData();
+      }
+    }
+
+    function bindEvents() {
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchPage(btn.dataset.page));
+      });
+
+      document.getElementById('reportSexSelect').addEventListener('change', () => {
+        const sex = document.getElementById('reportSexSelect').value;
+
+        fillMemberSelect('reportName', sex);
+        document.getElementById('reportCode').value = '';
+        state.reportAuthRequired = false;
+        state.reportAuthPassed = false;
+        handleSelectionChange();
+      });
+
+      document.getElementById('reportName').addEventListener('change', () => {
+        document.getElementById('reportCode').value = '';
+        state.reportAuthRequired = false;
+        state.reportAuthPassed = false;
+        handleSelectionChange();
+      });
+
+      document.getElementById('reportCode').addEventListener('input', () => {
+        window.clearTimeout(state.reportCodeTimer);
+        state.reportAuthPassed = false;
+
+        const code = document.getElementById('reportCode').value.trim();
+
+        if (!code || code.length < 4) {
+          renderAuthRequired('請輸入查詢碼，驗證後才能回報');
+          return;
+        }
+
+        state.reportCodeTimer = window.setTimeout(() => {
+          handleSelectionChange(true);
+        }, 300);
+      });
+
+      document.getElementById('readingWeekSelect').addEventListener('change', () => handleSelectionChange(false));
+      document.getElementById('prayerDateSelect').addEventListener('change', () => handleSelectionChange(false));
+
+      document.getElementById('mySexSelect').addEventListener('change', () => {
+        const sex = document.getElementById('mySexSelect').value;
+
+        fillMemberSelect('myName', sex);
+        document.getElementById('myResult').innerHTML = '';
+      });
+
+      document.getElementById('myName').addEventListener('change', () => {
+        document.getElementById('myResult').innerHTML = '';
+      });
+
+      document.querySelectorAll('[data-reading]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (!state.reportControlsEnabled || btn.disabled) return;
+
+          state.readingTouched = true;
+          state.readingChoice = btn.dataset.reading;
+          renderReadingChoice(state.readingChoice);
+        });
+      });
+
+      document.getElementById('prayerMinutes').addEventListener('input', () => {
+        state.prayerTouched = true;
+        updatePrayerMeter();
+      });
+
+      document.getElementById('submitReportBtn').addEventListener('click', submitReport);
+      document.getElementById('queryMyBtn').addEventListener('click', queryMyCompletion);
+
+      document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+      document.getElementById('laterCodeBtn').addEventListener('click', closeModal);
+      document.getElementById('saveCodeBtn').addEventListener('click', saveQueryCode);
+    }
+
+    function runServer(method, ...args) {
+      const payload = args.length ? args[0] : {};
+
+      return fetchJsonp(method, payload);
+    }
+
+    function fetchJsonp(action, payload) {
+      return new Promise((resolve, reject) => {
+        const callbackName = '__gasApiCallback_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+        const script = document.createElement('script');
+        const timeoutMs = 25000;
+
+        let finished = false;
+
+        const cleanup = () => {
+          if (finished) return;
+
+          finished = true;
+          window.clearTimeout(timer);
+
+          try {
+            delete window[callbackName];
+          } catch (error) {
+            window[callbackName] = undefined;
+          }
+
+          if (script.parentNode) {
+            script.parentNode.removeChild(script);
+          }
+        };
+
+        const timer = window.setTimeout(() => {
+          cleanup();
+          reject(new Error('連線逾時，請稍後再試'));
+        }, timeoutMs);
+
+        window[callbackName] = response => {
+          cleanup();
+
+          if (!response) {
+            reject(new Error('API 沒有回傳資料'));
+            return;
+          }
+
+          if (response.ok) {
+            resolve(response.data);
+            return;
+          }
+
+          reject(new Error(response.error || 'API 回傳錯誤'));
+        };
+
+        const url = new URL(GAS_API_URL);
+        url.searchParams.set('api', '1');
+        url.searchParams.set('action', action);
+        url.searchParams.set('callback', callbackName);
+
+        if (payload && Object.keys(payload).length) {
+          url.searchParams.set('payload', JSON.stringify(payload));
+        }
+
+        script.async = true;
+        script.src = url.toString();
+
+        script.onerror = () => {
+          cleanup();
+          reject(new Error('無法連線到 GAS API，請確認 Web App 已重新部署且權限為任何人可存取'));
+        };
+
+        document.head.appendChild(script);
+      });
+    }
+
+    async function loadInitialData() {
+      try {
+        const data = await runServer('getInitialData');
+        hydrateInitialData(data);
+      } catch (error) {
+        showToast(getErrorMessage(error));
+        document.getElementById('todayText').textContent = '載入失敗';
+        document.getElementById('reportName').innerHTML = '<option value="">載入失敗</option>';
+        document.getElementById('myName').innerHTML = '<option value="">載入失敗</option>';
+      }
+    }
+
+    function hydrateInitialData(data) {
+      state.members = data.members || [];
+      state.readingSchedule = data.readingSchedule || [];
+      state.prayerDates = data.prayerDates || [];
+      state.prayerTarget = Number(data.prayerTargetMinutes || 20);
+
+      document.getElementById('appTitle').textContent = data.appTitle || '讀經與禱告回報';
+      document.getElementById('todayText').textContent = '今日：' + data.todayText;
+
+      fillSexSelect('reportSexSelect');
+      fillSexSelect('mySexSelect');
+
+      fillMemberSelect('reportName', '');
+      fillMemberSelect('myName', '');
+
+      fillReadingWeekSelect(data.defaultReadingWeekNo);
+      fillPrayerDateSelect(data.defaultPrayerDate);
+      renderReadingPlan();
+      updatePrayerMeter();
+      setReportControlsEnabled(false);
+    }
+
+    function fillSexSelect(id) {
+      const select = document.getElementById(id);
+      const sexList = Array.from(new Set(
+        state.members
+          .map(member => String(member.sex || '').trim())
+          .filter(Boolean)
+      ));
+
+      sexList.sort((a, b) => {
+        const order = { '弟兄': 1, '姊妹': 2 };
+        return (order[a] || 99) - (order[b] || 99) || a.localeCompare(b, 'zh-Hant');
+      });
+
+      select.innerHTML = '<option value="">請選擇性別</option>';
+
+      sexList.forEach(sex => {
+        const option = document.createElement('option');
+        option.value = sex;
+        option.textContent = sex;
+        select.appendChild(option);
+      });
+    }
+
+    function fillMemberSelect(id, sex) {
+      const select = document.getElementById(id);
+      const targetSex = String(sex || '').trim();
+
+      select.innerHTML = '';
+
+      if (!targetSex) {
+        select.disabled = true;
+        select.innerHTML = '<option value="">請先選擇性別</option>';
+        return;
+      }
+
+      const list = state.members.filter(member => String(member.sex || '').trim() === targetSex);
+
+      select.disabled = false;
+      select.innerHTML = '<option value="">請選擇姓名</option>';
+
+      list.forEach(member => {
+        const option = document.createElement('option');
+        option.value = member.name;
+        option.textContent = member.name;
+        select.appendChild(option);
+      });
+    }
+
+    function getReportSex() {
+      return document.getElementById('reportSexSelect').value;
+    }
+
+    function getMySex() {
+      return document.getElementById('mySexSelect').value;
+    }
+
+    function getSelectedMember(name, sex) {
+      const targetName = String(name || '').trim();
+      const targetSex = String(sex || '').trim();
+
+      return state.members.find(member => {
+        return member.name === targetName &&
+          (!targetSex || String(member.sex || '').trim() === targetSex);
+      }) || null;
+    }
+
+    function getSelectedReadingItem() {
+      const weekNo = Number(document.getElementById('readingWeekSelect').value);
+      return state.readingSchedule.find(item => Number(item.weekNo) === weekNo) || null;
+    }
+
+    function fillReadingWeekSelect(defaultWeekNo) {
+      const select = document.getElementById('readingWeekSelect');
+      select.innerHTML = '';
+
+      state.readingSchedule.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.weekNo;
+        option.textContent = item.label;
+        select.appendChild(option);
+      });
+
+      select.value = String(defaultWeekNo || 1);
+    }
+
+    function fillPrayerDateSelect(defaultDate) {
+      const select = document.getElementById('prayerDateSelect');
+      select.innerHTML = '';
+
+      if (!state.prayerDates.length) {
+        select.innerHTML = '<option value="">尚未開放</option>';
+        select.disabled = true;
+        return;
+      }
+
+      select.disabled = false;
+
+      state.prayerDates.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.value;
+        option.textContent = item.label;
+        select.appendChild(option);
+      });
+
+      if (defaultDate) select.value = defaultDate;
+    }
+
+    function makeStatusCacheKey(name) {
+      return [
+        getReportSex(),
+        name,
+        document.getElementById('readingWeekSelect').value,
+        document.getElementById('prayerDateSelect').value
+      ].join('||');
+    }
+
+    async function handleSelectionChange(forceServer) {
+      const sex = getReportSex();
+      const name = document.getElementById('reportName').value;
+      const member = getSelectedMember(name, sex);
+
+      resetInputTouchedState();
+      renderReadingPlan();
+
+      if (!sex) {
+        document.getElementById('reportCodeWrap').classList.add('hidden');
+        setPill('readingPill', '先選性別', false, false, false);
+        setPill('prayerPill', '先選性別', false, false, false);
+        setReadingLocked(false);
+        setPrayerCompleteNotice(false);
+        setReportControlsEnabled(false);
+        return;
+      }
+
+      if (!member) {
+        document.getElementById('reportCodeWrap').classList.add('hidden');
+        setPill('readingPill', '未回報', false, false, false);
+        setPill('prayerPill', '未回報', false, false, false);
+        setReadingLocked(false);
+        setPrayerCompleteNotice(false);
+        setReportControlsEnabled(false);
+        return;
+      }
+
+      state.reportAuthRequired = Boolean(member.hasQueryCode);
+      state.reportAuthPassed = !state.reportAuthRequired;
+
+      if (state.reportAuthRequired) {
+        document.getElementById('reportCodeWrap').classList.remove('hidden');
+
+        const code = document.getElementById('reportCode').value.trim();
+
+        if (!code || code.length < 4) {
+          renderAuthRequired('此姓名已設定查詢碼，請先輸入查詢碼');
+          return;
+        }
+      } else {
+        document.getElementById('reportCodeWrap').classList.add('hidden');
+        document.getElementById('reportCode').value = '';
+      }
+
+      const cacheKey = makeStatusCacheKey(name);
+
+      if (!forceServer && !member.hasQueryCode && state.statusCache[cacheKey]) {
+        state.reportAuthPassed = true;
+        setReportControlsEnabled(true);
+        renderSelectedStatus(state.statusCache[cacheKey]);
+        return;
+      }
+
+      try {
+        const status = await runServer('getSelectedStatus', {
+          name,
+          queryCode: document.getElementById('reportCode').value.trim(),
+          readingWeekNo: document.getElementById('readingWeekSelect').value,
+          prayerDate: document.getElementById('prayerDateSelect').value
+        });
+
+        if (status.authRequired && !status.authPassed) {
+          renderAuthRequired(status.message || '請輸入查詢碼，驗證後才能回報');
+          return;
+        }
+
+        state.reportAuthPassed = true;
+        setReportControlsEnabled(true);
+
+        if (state.reportAuthRequired) {
+          document.getElementById('reportAuthHint').textContent = '查詢碼已驗證，可以回報。';
+        }
+
+        if (!member.hasQueryCode) {
+          state.statusCache[cacheKey] = status;
+        }
+
+        renderSelectedStatus(status);
+      } catch (error) {
+        state.reportAuthPassed = false;
+        renderAuthRequired('查詢碼錯誤，請重新輸入');
+        showToast(getErrorMessage(error));
+      }
+    }
+
+    function renderAuthRequired(message) {
+      state.reportAuthPassed = false;
+      setReportControlsEnabled(false);
+      setReadingLocked(false);
+      setPrayerCompleteNotice(false);
+      renderReadingChoice('');
+
+      setPill('readingPill', '需查詢碼', false, false, false);
+      setPill('prayerPill', '需查詢碼', false, false, false);
+
+      document.getElementById('prayerMinutes').value = '';
+      document.getElementById('prayerHint').textContent = '請先輸入查詢碼';
+      document.getElementById('meterMinutes').textContent = '0';
+      document.getElementById('prayerMeter').style.setProperty('--meter-deg', '0deg');
+
+      document.getElementById('reportAuthHint').textContent = message || '請輸入查詢碼，驗證後才能回報。';
+    }
+
+    function setReportControlsEnabled(enabled) {
+      state.reportControlsEnabled = Boolean(enabled);
+
+      document.querySelectorAll('[data-reading]').forEach(btn => {
+        btn.disabled = !enabled;
+        btn.classList.toggle('locked', !enabled);
+      });
+
+      const prayerEnabled = Boolean(enabled && state.prayerDates.length > 0);
+
+      document.getElementById('prayerMinutes').disabled = !prayerEnabled;
+      document.getElementById('submitReportBtn').disabled = !enabled;
+    }
+
+    function resetInputTouchedState() {
+      state.readingTouched = false;
+      state.readingChoice = '';
+      state.prayerTouched = false;
+
+      document.getElementById('prayerMinutes').value = '';
+
+      renderReadingChoice('');
+      updatePrayerMeter();
+      setPrayerCompleteNotice(false);
+    }
+
+    function renderSelectedStatus(status) {
+      if (status.readingReported) {
+        state.readingChoice = status.readingStatus;
+        renderReadingChoice(status.readingStatus);
+
+        if (status.readingLocked) {
+          setPill('readingPill', '已完成・已鎖定', true, true, false);
+          setReadingLocked(true);
+        } else {
+          setPill('readingPill', '已回報', true, false, false);
+          setReadingLocked(false);
+        }
+      } else {
+        setPill('readingPill', '未回報', false, false, false);
+        renderReadingChoice('');
+        setReadingLocked(false);
+      }
+
+      state.readingTouched = false;
+
+      if (status.prayerReported) {
+        document.getElementById('prayerMinutes').value = status.prayerMinutes;
+
+        const diff = Number(status.prayerDiff);
+
+        if (diff < 0) {
+          setPill('prayerPill', '未達標', false, false, false);
+          document.getElementById('prayerHint').textContent = '還差 ' + Math.abs(diff) + ' 分鐘';
+          setPrayerCompleteNotice(false);
+        } else if (diff === 0) {
+          setPill('prayerPill', '已達標', true, false, true);
+          document.getElementById('prayerHint').textContent = '已達成目標';
+          setPrayerCompleteNotice(true, '該日禱告已達標', '已回報 ' + status.prayerMinutes + ' 分鐘，已滿每日目標。');
+        } else {
+          setPill('prayerPill', '已超過', true, false, true);
+          document.getElementById('prayerHint').textContent = '已超過目標 ' + diff + ' 分鐘';
+          setPrayerCompleteNotice(true, '該日禱告已超過目標', '已回報 ' + status.prayerMinutes + ' 分鐘，超過每日目標 ' + diff + ' 分鐘。');
+        }
+      } else {
+        setPill('prayerPill', '未回報', false, false, false);
+        document.getElementById('prayerMinutes').value = '';
+        document.getElementById('prayerHint').textContent = state.prayerDates.length ? '還差 ' + state.prayerTarget + ' 分鐘' : '禱告日期尚未開放';
+        setPrayerCompleteNotice(false);
+      }
+
+      state.prayerTouched = false;
+      updatePrayerMeter();
+    }
+
+    function renderReadingPlan() {
+      const item = getSelectedReadingItem();
+
+      if (!item) {
+        document.getElementById('readingWeekText').textContent = '請選擇讀經週次';
+        document.getElementById('readingProgressText').textContent = '';
+        return;
+      }
+
+      document.getElementById('readingWeekText').textContent = '第 ' + item.weekNo + ' 週｜' + item.periodText;
+      document.getElementById('readingProgressText').textContent = item.text;
+    }
+
+    function setPill(id, text, done, locked, prayerDone) {
+      const pill = document.getElementById(id);
+
+      pill.textContent = text;
+      pill.classList.toggle('done', Boolean(done));
+      pill.classList.toggle('locked', Boolean(locked));
+      pill.classList.toggle('prayer-done', Boolean(prayerDone));
+    }
+
+    function setPrayerCompleteNotice(show, title, text) {
+      const notice = document.getElementById('prayerCompleteNotice');
+
+      notice.classList.toggle('hidden', !show);
+
+      if (show) {
+        document.getElementById('prayerCompleteTitle').textContent = title || '該日禱告已達標';
+        document.getElementById('prayerCompleteText').textContent = text || '已填入該日已回報的分鐘數。';
+      }
+    }
+
+    function setReadingLocked(locked) {
+      const notice = document.getElementById('readingLockNotice');
+
+      notice.classList.toggle('hidden', !locked);
+
+      document.querySelectorAll('[data-reading]').forEach(btn => {
+        const disabled = Boolean(locked || !state.reportControlsEnabled);
+        btn.disabled = disabled;
+        btn.classList.toggle('locked', disabled);
+      });
+
+      if (locked) state.readingTouched = false;
+    }
+
+    function renderReadingChoice(value) {
+      document.querySelectorAll('[data-reading]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.reading === value);
+      });
+    }
+
+    function updatePrayerMeter() {
+      const input = document.getElementById('prayerMinutes');
+      const minutes = Number(input.value || 0);
+      const target = state.prayerTarget || 20;
+      const percent = Math.max(0, Math.min(100, (minutes / target) * 100));
+      const deg = Math.round(percent * 3.6);
+
+      if (state.prayerTouched) {
+        setPrayerCompleteNotice(false);
+
+        if (input.value !== '' && minutes >= target) {
+          setPill('prayerPill', minutes === target ? '已達標' : '已超過', true, false, true);
+        } else if (input.value !== '') {
+          setPill('prayerPill', '未達標', false, false, false);
+        } else {
+          setPill('prayerPill', '未回報', false, false, false);
+        }
+      }
+
+      document.getElementById('prayerMeter').style.setProperty('--meter-deg', deg + 'deg');
+      document.getElementById('meterMinutes').textContent = minutes || 0;
+
+      if (!state.prayerDates.length) {
+        document.getElementById('prayerHint').textContent = '禱告日期尚未開放';
+        return;
+      }
+
+      if (input.value === '') {
+        document.getElementById('prayerHint').textContent = '還差 ' + target + ' 分鐘';
+        return;
+      }
+
+      const diff = minutes - target;
+
+      if (diff < 0) {
+        document.getElementById('prayerHint').textContent = '還差 ' + Math.abs(diff) + ' 分鐘';
+      } else if (diff === 0) {
+        document.getElementById('prayerHint').textContent = '已達成目標';
+      } else {
+        document.getElementById('prayerHint').textContent = '已超過目標 ' + diff + ' 分鐘';
+      }
+    }
+
+    async function submitReport() {
+      const sex = getReportSex();
+      const name = document.getElementById('reportName').value;
+      const member = getSelectedMember(name, sex);
+      const prayerValue = document.getElementById('prayerMinutes').value.trim();
+      const queryCode = document.getElementById('reportCode').value.trim();
+
+      if (!sex) {
+        showToast('請先選擇性別');
+        return;
+      }
+
+      if (!name) {
+        showToast('請先選擇姓名');
+        return;
+      }
+
+      if (member && member.hasQueryCode && !queryCode) {
+        showToast('請先輸入查詢碼');
+        return;
+      }
+
+      if (member && member.hasQueryCode && !state.reportAuthPassed) {
+        showToast('請先完成查詢碼驗證');
+        return;
+      }
+
+      const payload = { name, queryCode };
+
+      if (state.readingTouched) {
+        payload.readingWeekNo = Number(document.getElementById('readingWeekSelect').value);
+        payload.readingStatus = state.readingChoice;
+      }
+
+      if (state.prayerTouched && prayerValue !== '') {
+        payload.prayerDate = document.getElementById('prayerDateSelect').value;
+        payload.prayerMinutes = prayerValue;
+      }
+
+      if (!payload.readingStatus && payload.prayerMinutes === undefined) {
+        showToast('請至少填寫或修改一項回報');
+        return;
+      }
+
+      const btn = document.getElementById('submitReportBtn');
+      btn.disabled = true;
+      btn.textContent = '送出中...';
+
+      try {
+        const result = await runServer('submitReport', payload);
+
+        state.readingTouched = false;
+        state.prayerTouched = false;
+        state.completionLoaded = false;
+        state.statusCache = Object.create(null);
+
+        applySubmitResultToCurrentView(result);
+        showReportResultModal(result, name);
+      } catch (error) {
+        showToast(getErrorMessage(error));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '送出回報';
+
+        const latestMember = getSelectedMember(
+          document.getElementById('reportName').value,
+          getReportSex()
+        );
+
+        if (latestMember && latestMember.hasQueryCode && !state.reportAuthPassed) {
+          btn.disabled = true;
+        }
+      }
+    }
+
+    function applySubmitResultToCurrentView(result) {
+      if (result.reading && result.reading.reported) {
+        state.readingChoice = result.reading.status;
+        renderReadingChoice(result.reading.status);
+
+        if (result.reading.locked) {
+          setPill('readingPill', '已完成・已鎖定', true, true, false);
+          setReadingLocked(true);
+        } else {
+          setPill('readingPill', '已回報', true, false, false);
+          setReadingLocked(false);
+        }
+      }
+
+      if (result.prayer && result.prayer.reported) {
+        document.getElementById('prayerMinutes').value = result.prayer.minutes;
+
+        if (result.prayer.diff < 0) {
+          setPill('prayerPill', '未達標', false, false, false);
+          document.getElementById('prayerHint').textContent = '還差 ' + Math.abs(result.prayer.diff) + ' 分鐘';
+          setPrayerCompleteNotice(false);
+        } else if (result.prayer.diff === 0) {
+          setPill('prayerPill', '已達標', true, false, true);
+          document.getElementById('prayerHint').textContent = '已達成目標';
+          setPrayerCompleteNotice(true, '該日禱告已達標', '已回報 ' + result.prayer.minutes + ' 分鐘，已滿每日目標。');
+        } else {
+          setPill('prayerPill', '已超過', true, false, true);
+          document.getElementById('prayerHint').textContent = '已超過目標 ' + result.prayer.diff + ' 分鐘';
+          setPrayerCompleteNotice(true, '該日禱告已超過目標', '已回報 ' + result.prayer.minutes + ' 分鐘，超過每日目標 ' + result.prayer.diff + ' 分鐘。');
+        }
+
+        updatePrayerMeter();
+      }
+    }
+
+    function showReportResultModal(result, name) {
+      const modalTitle = document.getElementById('modalTitle');
+      const modalBody = document.getElementById('modalBody');
+      const setupBox = document.getElementById('setupBox');
+      const laterBtn = document.getElementById('laterCodeBtn');
+
+      modalTitle.textContent = '回報已完成';
+
+      let html = '';
+
+      if (result.reading && result.reading.reported) {
+        html += '<div>讀經：<strong>第 ' + result.reading.weekNo + ' 週｜' + escapeHtml(result.reading.status) + '</strong></div>';
+        html += '<div>' + escapeHtml(result.reading.text) + '</div>';
+      }
+
+      if (result.prayer && result.prayer.reported) {
+        html += '<div style="margin-top:8px;">禱告：<strong>' + escapeHtml(result.prayer.date) + '｜' + result.prayer.minutes + ' 分鐘</strong></div>';
+        html += '<div>' + escapeHtml(result.prayer.message || '') + '</div>';
+      }
+
+      if (!html) html = '<div>回報已更新。</div>';
+
+      if (result.needSetupCode) {
+        html += '<hr style="border:0;border-top:1px solid #eee2d0;margin:14px 0;">';
+        html += '<div><strong>第一次使用：</strong>請設定查詢碼，以後才能查詢自己的完成度。</div>';
+
+        state.setupToken = result.setupToken || '';
+        state.setupName = name;
+
+        setupBox.classList.remove('hidden');
+        laterBtn.classList.remove('hidden');
+      } else {
+        state.setupToken = '';
+        state.setupName = '';
+
+        setupBox.classList.add('hidden');
+        laterBtn.classList.add('hidden');
+      }
+
+      document.getElementById('setupCode').value = '';
+      document.getElementById('setupCodeConfirm').value = '';
+
+      modalBody.innerHTML = html;
+      document.getElementById('modalBackdrop').classList.remove('hidden');
+    }
+
+    async function saveQueryCode() {
+      const code = document.getElementById('setupCode').value.trim();
+      const confirm = document.getElementById('setupCodeConfirm').value.trim();
+
+      if (!/^\d{4,6}$/.test(code)) {
+        showToast('查詢碼必須是 4～6 碼數字');
+        return;
+      }
+
+      if (code !== confirm) {
+        showToast('兩次輸入的查詢碼不一致');
+        return;
+      }
+
+      if (!state.setupToken || !state.setupName) {
+        showToast('設定權限已失效，請重新回報後再設定');
+        return;
+      }
+
+      const btn = document.getElementById('saveCodeBtn');
+      btn.disabled = true;
+      btn.textContent = '設定中...';
+
+      try {
+        await runServer('setupQueryCode', {
+          name: state.setupName,
+          token: state.setupToken,
+          code
+        });
+
+        const member = state.members.find(item => item.name === state.setupName);
+
+        if (member) {
+          member.hasQueryCode = true;
+        }
+
+        if (document.getElementById('reportName').value === state.setupName) {
+          document.getElementById('reportCodeWrap').classList.remove('hidden');
+          document.getElementById('reportCode').value = '';
+          state.reportAuthRequired = true;
+          state.reportAuthPassed = false;
+          setReportControlsEnabled(false);
+          renderAuthRequired('查詢碼已設定，之後回報請先輸入查詢碼');
+        }
+
+        state.setupToken = '';
+        state.setupName = '';
+
+        document.getElementById('setupBox').classList.add('hidden');
+        document.getElementById('laterCodeBtn').classList.add('hidden');
+        document.getElementById('modalTitle').textContent = '查詢碼已設定';
+        document.getElementById('modalBody').innerHTML = '之後使用回報或查詢「我的完成度」時，都需要輸入姓名 + 查詢碼。';
+
+        showToast('查詢碼已設定');
+      } catch (error) {
+        showToast(getErrorMessage(error));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '設定查詢碼';
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('modalBackdrop').classList.add('hidden');
+    }
+
+    function switchPage(page) {
+      document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+
+      document.getElementById('page-' + page).classList.add('active');
+      document.querySelector('[data-page="' + page + '"]').classList.add('active');
+
+      if (page === 'completion') {
+        loadCompletion();
+      }
+    }
+
+    async function loadCompletion() {
+      if (state.completionLoaded) return;
+
+      const content = document.getElementById('completionContent');
+      content.innerHTML = '<div class="card empty-state">正在載入完成度...</div>';
+
+      try {
+        const data = await runServer('getCompletionSummary');
+
+        document.getElementById('completionPeriodText').textContent = data.periodInfo.overallPeriodText;
+        document.getElementById('completionElapsedText').textContent =
+          '讀經統計 ' + data.periodInfo.elapsedReadingWeeks + ' 週｜禱告統計 ' + data.periodInfo.elapsedPrayerDays + ' 天';
+        document.getElementById('completionTotal').textContent = data.totalMembers;
+
+        content.innerHTML =
+          renderDistributionBlock('讀經完成週數分布', '以完成週數統計', data.readingBuckets, data.totalMembers, 'reading') +
+          renderDistributionBlock('禱告達標度分布', '每日 ' + data.prayerTargetMinutes + ' 分鐘為達標', data.prayerBuckets, data.totalMembers, 'prayer');
+
+        state.completionLoaded = true;
+      } catch (error) {
+        content.innerHTML = '<div class="card empty-state">' + escapeHtml(getErrorMessage(error)) + '</div>';
+      }
+    }
+
+    function renderDistributionBlock(title, subtitle, buckets, total, mode) {
+      const rows = (buckets || []).map(bucket => {
+        const percent = total ? Math.round((bucket.count / total) * 100) : 0;
+        let level = 'low';
+
+        if (mode === 'reading') {
+          level = Number(bucket.key || 0) > 0 ? 'high' : 'low';
+        } else {
+          level = bucket.key === '100' || bucket.key === '80-99'
+            ? 'high'
+            : bucket.key === '60-79' || bucket.key === '40-59'
+              ? 'mid'
+              : 'low';
+        }
+
+        return `
+          <div class="dist-row" data-level="${level}">
+            <div>${escapeHtml(bucket.label)}</div>
+            <div class="dist-bar">
+              <div class="dist-fill" style="width:${percent}%"></div>
+            </div>
+            <div class="dist-count">${bucket.count} 人</div>
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <div class="card">
+          <div class="distribution-title">
+            <h3>${escapeHtml(title)}</h3>
+            <span>${escapeHtml(subtitle)}</span>
+          </div>
+          ${rows}
+        </div>
+      `;
+    }
+
+    async function queryMyCompletion() {
+      const sex = getMySex();
+      const name = document.getElementById('myName').value;
+      const code = document.getElementById('myCode').value.trim();
+
+      if (!sex) {
+        showToast('請先選擇性別');
+        return;
+      }
+
+      if (!name) {
+        showToast('請選擇姓名');
+        return;
+      }
+
+      if (!code) {
+        showToast('請輸入查詢碼');
+        return;
+      }
+
+      const btn = document.getElementById('queryMyBtn');
+      btn.disabled = true;
+      btn.textContent = '查詢中...';
+
+      try {
+        const data = await runServer('getMyCompletion', { name, code });
+        renderMyResult(data);
+      } catch (error) {
+        document.getElementById('myResult').innerHTML =
+          '<div class="card empty-state">' + escapeHtml(getErrorMessage(error)) + '</div>';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '查詢我的紀錄';
+      }
+    }
+
+    function renderMyResult(data) {
+      const readingDeg = Math.round((Number(data.readingRate || 0) / 100) * 360);
+      const prayerDeg = Math.round((Number(data.prayerRate || 0) / 100) * 360);
+
+      const readingRows = (data.readingRecords || []).map(record => {
+        return `
+          <tr>
+            <td>第 ${record.weekNo} 週</td>
+            <td>${escapeHtml(record.text)}</td>
+            <td>${renderReadingTag(record.status)}</td>
+          </tr>
+        `;
+      }).join('');
+
+      const prayerRows = (data.prayerRecords || []).map(record => {
+        return `
+          <tr>
+            <td>${escapeHtml(record.date)}</td>
+            <td>${escapeHtml(String(record.minutes))}</td>
+            <td>${renderPrayerTag(record.status)}</td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('myResult').innerHTML = `
+        <div class="card">
+          <div class="distribution-title">
+            <h3>我的完成度</h3>
+            <span>${escapeHtml(data.periodInfo.overallPeriodText)}</span>
+          </div>
+
+          <div class="metric-grid">
+            <div class="metric">
+              <div class="circle" style="--deg:${readingDeg}deg">
+                <span>${data.readingDoneCount}週</span>
+              </div>
+              <div class="metric-title">讀經完成週數</div>
+              <div class="summary-label">${data.readingDoneCount}/${data.elapsedReadingWeeks} 週</div>
+            </div>
+
+            <div class="metric">
+              <div class="circle gold" style="--deg:${prayerDeg}deg">
+                <span>${data.prayerRate}%</span>
+              </div>
+              <div class="metric-title">禱告達標率</div>
+              <div class="summary-label">${data.prayerReachedCount}/${data.elapsedPrayerDays} 天</div>
+            </div>
+          </div>
+
+          <div class="distribution-title">
+            <h3>讀經紀錄</h3>
+            <span>以週為單位</span>
+          </div>
+
+          <table class="record-table">
+            <thead>
+              <tr>
+                <th>週次</th>
+                <th>進度</th>
+                <th>狀態</th>
+              </tr>
+            </thead>
+            <tbody>${readingRows}</tbody>
+          </table>
+
+          <div style="height:16px;"></div>
+
+          <div class="distribution-title">
+            <h3>禱告紀錄</h3>
+            <span>以日為單位</span>
+          </div>
+
+          <table class="record-table">
+            <thead>
+              <tr>
+                <th>日期</th>
+                <th>分鐘</th>
+                <th>狀態</th>
+              </tr>
+            </thead>
+            <tbody>${prayerRows}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderReadingTag(value) {
+      if (value === '完成') return '<span class="tag ok">完成</span>';
+      if (value === '未完成') return '<span class="tag bad">未完成</span>';
+
+      return '<span class="tag">未回報</span>';
+    }
+
+    function renderPrayerTag(value) {
+      if (value === '達標' || value === '超過') {
+        return '<span class="tag ok">' + escapeHtml(value) + '</span>';
+      }
+
+      if (value === '未達標') {
+        return '<span class="tag warn">未達標</span>';
+      }
+
+      return '<span class="tag">未回報</span>';
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+
+      toast.textContent = message;
+      toast.classList.add('show');
+
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2600);
+    }
+
+    function getErrorMessage(error) {
+      if (!error) return '發生未知錯誤';
+
+      return error.message || String(error);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
