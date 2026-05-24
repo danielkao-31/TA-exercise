@@ -408,6 +408,7 @@
       color: var(--gold-700);
       font-weight: 950;
       font-size: 14px;
+      line-height: 1.5;
     }
 
     .submit-btn,
@@ -807,7 +808,7 @@
 <body>
   <div class="app">
     <header class="top-hero">
-      <h1 class="hero-title" id="appTitle">國特隊輔預先操練回報</h1>
+      <h1 class="hero-title" id="appTitle"國特隊輔預先操練回報ㄍ</h1>
       <div class="hero-subtitle" id="todayText">載入中...</div>
     </header>
 
@@ -902,8 +903,8 @@
         <div class="prayer-grid">
           <div>
             <div class="field">
-              <label for="prayerMinutes">禱告分鐘數</label>
-              <input id="prayerMinutes" class="input" type="number" inputmode="numeric" min="0" placeholder="輸入分鐘數">
+              <label for="prayerMinutes">本次新增分鐘數</label>
+              <input id="prayerMinutes" class="input" type="number" inputmode="numeric" min="0" placeholder="輸入本次新增分鐘">
             </div>
             <div class="hint-text" id="prayerHint">還差 20 分鐘</div>
           </div>
@@ -1033,7 +1034,8 @@
       reportControlsEnabled: false,
       reportCodeTimer: null,
       completionLoaded: false,
-      statusCache: Object.create(null)
+      statusCache: Object.create(null),
+      currentPrayerAccumulated: 0
     };
 
     document.addEventListener('DOMContentLoaded', init);
@@ -1442,6 +1444,8 @@
       setPill('readingPill', '需查詢碼', false, false, false);
       setPill('prayerPill', '需查詢碼', false, false, false);
 
+      state.currentPrayerAccumulated = 0;
+
       document.getElementById('prayerMinutes').value = '';
       document.getElementById('prayerHint').textContent = '請先輸入查詢碼';
       document.getElementById('meterMinutes').textContent = '0';
@@ -1468,6 +1472,7 @@
       state.readingTouched = false;
       state.readingChoice = '';
       state.prayerTouched = false;
+      state.currentPrayerAccumulated = 0;
 
       document.getElementById('prayerMinutes').value = '';
 
@@ -1496,28 +1501,34 @@
 
       state.readingTouched = false;
 
+      const totalMinutes = status.prayerReported ? Number(status.prayerMinutes || 0) : 0;
+      const target = Number(state.prayerTarget || 20);
+      const diff = totalMinutes - target;
+
+      state.currentPrayerAccumulated = totalMinutes;
+      document.getElementById('prayerMinutes').value = '';
+
       if (status.prayerReported) {
-        document.getElementById('prayerMinutes').value = status.prayerMinutes;
-
-        const diff = Number(status.prayerDiff);
-
         if (diff < 0) {
           setPill('prayerPill', '未達標', false, false, false);
-          document.getElementById('prayerHint').textContent = '還差 ' + Math.abs(diff) + ' 分鐘';
+          document.getElementById('prayerHint').textContent =
+            '已累計 ' + totalMinutes + ' 分鐘，還差 ' + Math.abs(diff) + ' 分鐘';
           setPrayerCompleteNotice(false);
         } else if (diff === 0) {
           setPill('prayerPill', '已達標', true, false, true);
-          document.getElementById('prayerHint').textContent = '已達成目標';
-          setPrayerCompleteNotice(true, '該日禱告已達標', '已回報 ' + status.prayerMinutes + ' 分鐘，已滿每日目標。');
+          document.getElementById('prayerHint').textContent =
+            '已累計 ' + totalMinutes + ' 分鐘，已達成目標';
+          setPrayerCompleteNotice(true, '該日禱告已達標', '已累計 ' + totalMinutes + ' 分鐘，已滿每日目標。');
         } else {
           setPill('prayerPill', '已超過', true, false, true);
-          document.getElementById('prayerHint').textContent = '已超過目標 ' + diff + ' 分鐘';
-          setPrayerCompleteNotice(true, '該日禱告已超過目標', '已回報 ' + status.prayerMinutes + ' 分鐘，超過每日目標 ' + diff + ' 分鐘。');
+          document.getElementById('prayerHint').textContent =
+            '已累計 ' + totalMinutes + ' 分鐘，已超過目標 ' + diff + ' 分鐘';
+          setPrayerCompleteNotice(true, '該日禱告已超過目標', '已累計 ' + totalMinutes + ' 分鐘，超過每日目標 ' + diff + ' 分鐘。');
         }
       } else {
         setPill('prayerPill', '未回報', false, false, false);
-        document.getElementById('prayerMinutes').value = '';
-        document.getElementById('prayerHint').textContent = state.prayerDates.length ? '還差 ' + state.prayerTarget + ' 分鐘' : '禱告日期尚未開放';
+        document.getElementById('prayerHint').textContent =
+          state.prayerDates.length ? '本次請輸入新增分鐘，還差 ' + target + ' 分鐘' : '禱告日期尚未開放';
         setPrayerCompleteNotice(false);
       }
 
@@ -1580,25 +1591,33 @@
 
     function updatePrayerMeter() {
       const input = document.getElementById('prayerMinutes');
-      const minutes = Number(input.value || 0);
-      const target = state.prayerTarget || 20;
-      const percent = Math.max(0, Math.min(100, (minutes / target) * 100));
+      const addedMinutes = Number(input.value || 0);
+      const accumulated = Number(state.currentPrayerAccumulated || 0);
+      const target = Number(state.prayerTarget || 20);
+      const totalMinutes = accumulated + addedMinutes;
+      const percent = Math.max(0, Math.min(100, (totalMinutes / target) * 100));
       const deg = Math.round(percent * 3.6);
 
       if (state.prayerTouched) {
         setPrayerCompleteNotice(false);
 
-        if (input.value !== '' && minutes >= target) {
-          setPill('prayerPill', minutes === target ? '已達標' : '已超過', true, false, true);
+        if (input.value !== '' && totalMinutes >= target) {
+          setPill('prayerPill', totalMinutes === target ? '已達標' : '已超過', true, false, true);
         } else if (input.value !== '') {
           setPill('prayerPill', '未達標', false, false, false);
+        } else if (accumulated > 0) {
+          if (accumulated >= target) {
+            setPill('prayerPill', accumulated === target ? '已達標' : '已超過', true, false, true);
+          } else {
+            setPill('prayerPill', '未達標', false, false, false);
+          }
         } else {
           setPill('prayerPill', '未回報', false, false, false);
         }
       }
 
       document.getElementById('prayerMeter').style.setProperty('--meter-deg', deg + 'deg');
-      document.getElementById('meterMinutes').textContent = minutes || 0;
+      document.getElementById('meterMinutes').textContent = totalMinutes || 0;
 
       if (!state.prayerDates.length) {
         document.getElementById('prayerHint').textContent = '禱告日期尚未開放';
@@ -1606,18 +1625,38 @@
       }
 
       if (input.value === '') {
-        document.getElementById('prayerHint').textContent = '還差 ' + target + ' 分鐘';
+        if (accumulated > 0) {
+          const accumulatedDiff = accumulated - target;
+
+          if (accumulatedDiff < 0) {
+            document.getElementById('prayerHint').textContent =
+              '已累計 ' + accumulated + ' 分鐘，還差 ' + Math.abs(accumulatedDiff) + ' 分鐘';
+          } else if (accumulatedDiff === 0) {
+            document.getElementById('prayerHint').textContent =
+              '已累計 ' + accumulated + ' 分鐘，已達成目標';
+          } else {
+            document.getElementById('prayerHint').textContent =
+              '已累計 ' + accumulated + ' 分鐘，已超過目標 ' + accumulatedDiff + ' 分鐘';
+          }
+        } else {
+          document.getElementById('prayerHint').textContent =
+            '本次請輸入新增分鐘，還差 ' + target + ' 分鐘';
+        }
+
         return;
       }
 
-      const diff = minutes - target;
+      const diff = totalMinutes - target;
 
       if (diff < 0) {
-        document.getElementById('prayerHint').textContent = '還差 ' + Math.abs(diff) + ' 分鐘';
+        document.getElementById('prayerHint').textContent =
+          '本次新增 ' + addedMinutes + ' 分鐘，累計 ' + totalMinutes + ' 分鐘，還差 ' + Math.abs(diff) + ' 分鐘';
       } else if (diff === 0) {
-        document.getElementById('prayerHint').textContent = '已達成目標';
+        document.getElementById('prayerHint').textContent =
+          '本次新增 ' + addedMinutes + ' 分鐘，累計 ' + totalMinutes + ' 分鐘，已達成目標';
       } else {
-        document.getElementById('prayerHint').textContent = '已超過目標 ' + diff + ' 分鐘';
+        document.getElementById('prayerHint').textContent =
+          '本次新增 ' + addedMinutes + ' 分鐘，累計 ' + totalMinutes + ' 分鐘，已超過目標 ' + diff + ' 分鐘';
       }
     }
 
@@ -1711,20 +1750,29 @@
       }
 
       if (result.prayer && result.prayer.reported) {
-        document.getElementById('prayerMinutes').value = result.prayer.minutes;
+        const totalMinutes = Number(result.prayer.minutes || 0);
+        const diff = Number(result.prayer.diff || 0);
 
-        if (result.prayer.diff < 0) {
+        state.currentPrayerAccumulated = totalMinutes;
+        state.prayerTouched = false;
+
+        document.getElementById('prayerMinutes').value = '';
+
+        if (diff < 0) {
           setPill('prayerPill', '未達標', false, false, false);
-          document.getElementById('prayerHint').textContent = '還差 ' + Math.abs(result.prayer.diff) + ' 分鐘';
+          document.getElementById('prayerHint').textContent =
+            '已累計 ' + totalMinutes + ' 分鐘，還差 ' + Math.abs(diff) + ' 分鐘';
           setPrayerCompleteNotice(false);
-        } else if (result.prayer.diff === 0) {
+        } else if (diff === 0) {
           setPill('prayerPill', '已達標', true, false, true);
-          document.getElementById('prayerHint').textContent = '已達成目標';
-          setPrayerCompleteNotice(true, '該日禱告已達標', '已回報 ' + result.prayer.minutes + ' 分鐘，已滿每日目標。');
+          document.getElementById('prayerHint').textContent =
+            '已累計 ' + totalMinutes + ' 分鐘，已達成目標';
+          setPrayerCompleteNotice(true, '該日禱告已達標', '已累計 ' + totalMinutes + ' 分鐘，已滿每日目標。');
         } else {
           setPill('prayerPill', '已超過', true, false, true);
-          document.getElementById('prayerHint').textContent = '已超過目標 ' + result.prayer.diff + ' 分鐘';
-          setPrayerCompleteNotice(true, '該日禱告已超過目標', '已回報 ' + result.prayer.minutes + ' 分鐘，超過每日目標 ' + result.prayer.diff + ' 分鐘。');
+          document.getElementById('prayerHint').textContent =
+            '已累計 ' + totalMinutes + ' 分鐘，已超過目標 ' + diff + ' 分鐘';
+          setPrayerCompleteNotice(true, '該日禱告已超過目標', '已累計 ' + totalMinutes + ' 分鐘，超過每日目標 ' + diff + ' 分鐘。');
         }
 
         updatePrayerMeter();
@@ -1747,7 +1795,12 @@
       }
 
       if (result.prayer && result.prayer.reported) {
-        html += '<div style="margin-top:8px;">禱告：<strong>' + escapeHtml(result.prayer.date) + '｜' + result.prayer.minutes + ' 分鐘</strong></div>';
+        html += '<div style="margin-top:8px;">禱告：<strong>' + escapeHtml(result.prayer.date) + '｜累計 ' + result.prayer.minutes + ' 分鐘</strong></div>';
+
+        if (result.prayer.addedMinutes !== undefined) {
+          html += '<div>本次新增：' + result.prayer.addedMinutes + ' 分鐘</div>';
+        }
+
         html += '<div>' + escapeHtml(result.prayer.message || '') + '</div>';
       }
 
@@ -2028,7 +2081,7 @@
             <thead>
               <tr>
                 <th>日期</th>
-                <th>分鐘</th>
+                <th>累計分鐘</th>
                 <th>狀態</th>
               </tr>
             </thead>
