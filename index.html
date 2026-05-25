@@ -1020,9 +1020,9 @@
 
     window.__INITIAL_DATA__ = null;
 
-    const INITIAL_CACHE_KEY = 'rp_initial_cache_v20260525_speed1';
+    const INITIAL_CACHE_KEY = 'rp_initial_cache_v20260526_prayer_followup1';
     const INITIAL_CACHE_TTL_MS = 10 * 60 * 1000;
-    const COMPLETION_CACHE_KEY = 'rp_completion_cache_v20260525_speed1';
+    const COMPLETION_CACHE_KEY = 'rp_completion_cache_v20260526_prayer_followup1';
     const COMPLETION_CACHE_TTL_MS = 5 * 60 * 1000;
   </script>
 
@@ -2101,8 +2101,8 @@
       document.getElementById('completionTotal').textContent = totalMembers;
 
       content.innerHTML =
-        renderDistributionBlock('讀經完成週數分布', '以完成週數統計', data.readingBuckets || [], totalMembers, 'reading') +
-        renderDistributionBlock('禱告進度分布', '依漏掉達標天數統計', data.prayerBuckets || [], totalMembers, 'prayer');
+        renderDistributionBlock('讀經完成週數', '以完成週數統計', data.readingBuckets || [], totalMembers, 'reading') +
+        renderDistributionBlock('個人禱告操練', '依漏掉回報天數統計｜不含今天', data.prayerBuckets || [], totalMembers, 'prayer');
     }
 
     function renderDistributionBlock(title, subtitle, buckets, total, mode) {
