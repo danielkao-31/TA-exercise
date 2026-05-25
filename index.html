@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>國特隊輔預先操練回報</title>
 
   <style>
     :root {
@@ -808,7 +809,7 @@
 <body>
   <div class="app">
     <header class="top-hero">
-      <h1 class="hero-title" id="appTitle"國特隊輔預先操練回報ㄍ</h1>
+      <h1 class="hero-title" id="appTitle">國特隊輔預先操練回報</h1>
       <div class="hero-subtitle" id="todayText">載入中...</div>
     </header>
 
@@ -1015,6 +1016,7 @@
 
   <script>
     const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbylRyXlY4a3ZRkc_f9drQvUWe_STJ_j_IR4_jwBv1AuiASFbOB30gDNxbdUTe88WpLJnw/exec';
+    const FRONTEND_TITLE = '國特隊輔預先操練回報';
     window.__INITIAL_DATA__ = null;
   </script>
 
@@ -1127,7 +1129,6 @@
 
     function runServer(method, ...args) {
       const payload = args.length ? args[0] : {};
-
       return fetchJsonp(method, payload);
     }
 
@@ -1198,15 +1199,33 @@
       });
     }
 
+    function getEl(id) {
+      return document.getElementById(id);
+    }
+
+    function setText(id, text) {
+      const el = getEl(id);
+      if (el) el.textContent = text;
+    }
+
     async function loadInitialData() {
       try {
         const data = await runServer('getInitialData');
-        hydrateInitialData(data);
+        hydrateInitialData(data || {});
       } catch (error) {
         showToast(getErrorMessage(error));
-        document.getElementById('todayText').textContent = '載入失敗';
-        document.getElementById('reportName').innerHTML = '<option value="">載入失敗</option>';
-        document.getElementById('myName').innerHTML = '<option value="">載入失敗</option>';
+        setText('todayText', '載入失敗');
+
+        const reportName = getEl('reportName');
+        const myName = getEl('myName');
+
+        if (reportName) {
+          reportName.innerHTML = '<option value="">載入失敗</option>';
+        }
+
+        if (myName) {
+          myName.innerHTML = '<option value="">載入失敗</option>';
+        }
       }
     }
 
@@ -1216,8 +1235,8 @@
       state.prayerDates = data.prayerDates || [];
       state.prayerTarget = Number(data.prayerTargetMinutes || 20);
 
-      document.getElementById('appTitle').textContent = data.appTitle || '讀經與禱告回報';
-      document.getElementById('todayText').textContent = '今日：' + data.todayText;
+      setText('appTitle', FRONTEND_TITLE);
+      setText('todayText', data.todayText ? '今日：' + data.todayText : '');
 
       fillSexSelect('reportSexSelect');
       fillSexSelect('mySexSelect');
@@ -2139,3 +2158,4 @@
   </script>
 </body>
 </html>
+```
