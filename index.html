@@ -1943,7 +1943,7 @@
 
         content.innerHTML =
           renderDistributionBlock('讀經完成週數分布', '以完成週數統計', data.readingBuckets, data.totalMembers, 'reading') +
-          renderDistributionBlock('禱告達標度分布', '每日 ' + data.prayerTargetMinutes + ' 分鐘為達標', data.prayerBuckets, data.totalMembers, 'prayer');
+          renderDistributionBlock('禱告進度分布', '依漏掉達標天數統計', data.prayerBuckets, data.totalMembers, 'prayer');
 
         state.completionLoaded = true;
       } catch (error) {
@@ -1959,11 +1959,13 @@
         if (mode === 'reading') {
           level = Number(bucket.key || 0) > 0 ? 'high' : 'low';
         } else {
-          level = bucket.key === '100' || bucket.key === '80-99'
-            ? 'high'
-            : bucket.key === '60-79' || bucket.key === '40-59'
-              ? 'mid'
-              : 'low';
+          if (bucket.key === 'on-track') {
+            level = 'high';
+          } else if (bucket.key === 'miss-1-3' || bucket.key === 'miss-4-6') {
+            level = 'mid';
+          } else {
+            level = 'low';
+          }
         }
 
         return `
@@ -2158,4 +2160,3 @@
   </script>
 </body>
 </html>
-```
