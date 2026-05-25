@@ -1017,7 +1017,13 @@
   <script>
     const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbylRyXlY4a3ZRkc_f9drQvUWe_STJ_j_IR4_jwBv1AuiASFbOB30gDNxbdUTe88WpLJnw/exec';
     const FRONTEND_TITLE = '國特隊輔預先操練回報';
+
     window.__INITIAL_DATA__ = null;
+
+    const INITIAL_CACHE_KEY = 'rp_initial_cache_v20260525_speed1';
+    const INITIAL_CACHE_TTL_MS = 10 * 60 * 1000;
+    const COMPLETION_CACHE_KEY = 'rp_completion_cache_v20260525_speed1';
+    const COMPLETION_CACHE_TTL_MS = 5 * 60 * 1000;
   </script>
 
   <script>
@@ -1037,7 +1043,9 @@
       reportCodeTimer: null,
       completionLoaded: false,
       statusCache: Object.create(null),
-      currentPrayerAccumulated: 0
+      currentPrayerAccumulated: 0,
+      initialHydrated: false,
+      initialLoading: false
     };
 
     document.addEventListener('DOMContentLoaded', init);
@@ -1045,10 +1053,14 @@
     function init() {
       bindEvents();
 
-      if (window.__INITIAL_DATA__) {
-        hydrateInitialData(window.__INITIAL_DATA__);
+      const cachedInitialData = window.__INITIAL_DATA__ || readInitialCache();
+
+      if (cachedInitialData) {
+        hydrateInitialData(cachedInitialData, true);
+        loadInitialData(true);
       } else {
-        loadInitialData();
+        renderInitialSkeleton();
+        loadInitialData(false);
       }
     }
 
@@ -1208,28 +1220,124 @@
       if (el) el.textContent = text;
     }
 
-    async function loadInitialData() {
+    function renderInitialSkeleton() {
+      setText('appTitle', FRONTEND_TITLE);
+      setText('todayText', '資料載入中...');
+      setReportControlsEnabled(false);
+    }
+
+    async function loadInitialData(background) {
+      if (state.initialLoading) return;
+
+      state.initialLoading = true;
+
       try {
         const data = await runServer('getInitialData');
-        hydrateInitialData(data || {});
+        writeInitialCache(data || {});
+        hydrateInitialData(data || {}, false);
       } catch (error) {
-        showToast(getErrorMessage(error));
-        setText('todayText', '載入失敗');
+        if (!background) {
+          showToast(getErrorMessage(error));
+          setText('todayText', '載入失敗');
 
-        const reportName = getEl('reportName');
-        const myName = getEl('myName');
+          const reportName = getEl('reportName');
+          const myName = getEl('myName');
 
-        if (reportName) {
-          reportName.innerHTML = '<option value="">載入失敗</option>';
+          if (reportName) {
+            reportName.innerHTML = '<option value="">載入失敗</option>';
+          }
+
+          if (myName) {
+            myName.innerHTML = '<option value="">載入失敗</option>';
+          }
         }
-
-        if (myName) {
-          myName.innerHTML = '<option value="">載入失敗</option>';
-        }
+      } finally {
+        state.initialLoading = false;
       }
     }
 
-    function hydrateInitialData(data) {
+    function readInitialCache() {
+      try {
+        const text = localStorage.getItem(INITIAL_CACHE_KEY);
+
+        if (!text) return null;
+
+        const parsed = JSON.parse(text);
+
+        if (!parsed || !parsed.data || !parsed.savedAt) return null;
+
+        if (Date.now() - Number(parsed.savedAt) > INITIAL_CACHE_TTL_MS) {
+          localStorage.removeItem(INITIAL_CACHE_KEY);
+          return null;
+        }
+
+        return parsed.data;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function writeInitialCache(data) {
+      try {
+        localStorage.setItem(INITIAL_CACHE_KEY, JSON.stringify({
+          savedAt: Date.now(),
+          data
+        }));
+      } catch (error) {
+        // localStorage 不可用時不影響主流程。
+      }
+    }
+
+    function readCompletionCache() {
+      try {
+        const text = sessionStorage.getItem(COMPLETION_CACHE_KEY);
+
+        if (!text) return null;
+
+        const parsed = JSON.parse(text);
+
+        if (!parsed || !parsed.data || !parsed.savedAt) return null;
+
+        if (Date.now() - Number(parsed.savedAt) > COMPLETION_CACHE_TTL_MS) {
+          sessionStorage.removeItem(COMPLETION_CACHE_KEY);
+          return null;
+        }
+
+        return parsed.data;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function writeCompletionCache(data) {
+      try {
+        sessionStorage.setItem(COMPLETION_CACHE_KEY, JSON.stringify({
+          savedAt: Date.now(),
+          data
+        }));
+      } catch (error) {
+        // sessionStorage 不可用時不影響主流程。
+      }
+    }
+
+    function clearFrontendCaches() {
+      try {
+        localStorage.removeItem(INITIAL_CACHE_KEY);
+        sessionStorage.removeItem(COMPLETION_CACHE_KEY);
+      } catch (error) {
+        // 不影響主流程。
+      }
+    }
+
+    function hydrateInitialData(data, fromCache) {
+      const previousReportSex = document.getElementById('reportSexSelect').value;
+      const previousReportName = document.getElementById('reportName').value;
+      const previousMySex = document.getElementById('mySexSelect').value;
+      const previousMyName = document.getElementById('myName').value;
+      const previousReadingWeek = document.getElementById('readingWeekSelect').value;
+      const previousPrayerDate = document.getElementById('prayerDateSelect').value;
+
+      state.initialHydrated = true;
       state.members = data.members || [];
       state.readingSchedule = data.readingSchedule || [];
       state.prayerDates = data.prayerDates || [];
@@ -1241,14 +1349,38 @@
       fillSexSelect('reportSexSelect');
       fillSexSelect('mySexSelect');
 
-      fillMemberSelect('reportName', '');
-      fillMemberSelect('myName', '');
+      restoreSelectValue('reportSexSelect', previousReportSex);
+      restoreSelectValue('mySexSelect', previousMySex);
 
-      fillReadingWeekSelect(data.defaultReadingWeekNo);
-      fillPrayerDateSelect(data.defaultPrayerDate);
+      fillMemberSelect('reportName', document.getElementById('reportSexSelect').value);
+      fillMemberSelect('myName', document.getElementById('mySexSelect').value);
+
+      restoreSelectValue('reportName', previousReportName);
+      restoreSelectValue('myName', previousMyName);
+
+      fillReadingWeekSelect(previousReadingWeek || data.defaultReadingWeekNo);
+      fillPrayerDateSelect(previousPrayerDate || data.defaultPrayerDate);
+
       renderReadingPlan();
       updatePrayerMeter();
-      setReportControlsEnabled(false);
+
+      if (!document.getElementById('reportName').value) {
+        setReportControlsEnabled(false);
+      } else if (!fromCache) {
+        handleSelectionChange(false);
+      }
+    }
+
+    function restoreSelectValue(id, value) {
+      const select = document.getElementById(id);
+
+      if (!select || !value) return;
+
+      const exists = Array.from(select.options).some(option => option.value === value);
+
+      if (exists) {
+        select.value = value;
+      }
     }
 
     function fillSexSelect(id) {
@@ -1355,7 +1487,9 @@
         select.appendChild(option);
       });
 
-      if (defaultDate) select.value = defaultDate;
+      if (defaultDate) {
+        restoreSelectValue('prayerDateSelect', defaultDate);
+      }
     }
 
     function makeStatusCacheKey(name) {
@@ -1734,9 +1868,11 @@
         state.prayerTouched = false;
         state.completionLoaded = false;
         state.statusCache = Object.create(null);
+        clearFrontendCaches();
 
         applySubmitResultToCurrentView(result);
         showReportResultModal(result, name);
+        loadInitialData(true);
       } catch (error) {
         showToast(getErrorMessage(error));
       } finally {
@@ -1879,6 +2015,8 @@
           code
         });
 
+        clearFrontendCaches();
+
         const member = state.members.find(item => item.name === state.setupName);
 
         if (member) {
@@ -1903,6 +2041,7 @@
         document.getElementById('modalBody').innerHTML = '之後使用回報或查詢「我的完成度」時，都需要輸入姓名 + 查詢碼。';
 
         showToast('查詢碼已設定');
+        loadInitialData(true);
       } catch (error) {
         showToast(getErrorMessage(error));
       } finally {
@@ -1923,32 +2062,47 @@
       document.querySelector('[data-page="' + page + '"]').classList.add('active');
 
       if (page === 'completion') {
-        loadCompletion();
+        loadCompletion(false);
       }
     }
 
-    async function loadCompletion() {
-      if (state.completionLoaded) return;
+    async function loadCompletion(forceRefresh) {
+      if (state.completionLoaded && !forceRefresh) return;
 
       const content = document.getElementById('completionContent');
+      const cached = !forceRefresh ? readCompletionCache() : null;
+
+      if (cached) {
+        renderCompletionSummary(cached);
+        state.completionLoaded = true;
+        return;
+      }
+
       content.innerHTML = '<div class="card empty-state">正在載入完成度...</div>';
 
       try {
         const data = await runServer('getCompletionSummary');
-
-        document.getElementById('completionPeriodText').textContent = data.periodInfo.overallPeriodText;
-        document.getElementById('completionElapsedText').textContent =
-          '讀經統計 ' + data.periodInfo.elapsedReadingWeeks + ' 週｜禱告統計 ' + data.periodInfo.elapsedPrayerDays + ' 天';
-        document.getElementById('completionTotal').textContent = data.totalMembers;
-
-        content.innerHTML =
-          renderDistributionBlock('讀經完成週數分布', '以完成週數統計', data.readingBuckets, data.totalMembers, 'reading') +
-          renderDistributionBlock('禱告進度分布', '依漏掉達標天數統計', data.prayerBuckets, data.totalMembers, 'prayer');
-
+        writeCompletionCache(data || {});
+        renderCompletionSummary(data || {});
         state.completionLoaded = true;
       } catch (error) {
         content.innerHTML = '<div class="card empty-state">' + escapeHtml(getErrorMessage(error)) + '</div>';
       }
+    }
+
+    function renderCompletionSummary(data) {
+      const content = document.getElementById('completionContent');
+      const periodInfo = data.periodInfo || {};
+      const totalMembers = Number(data.totalMembers || 0);
+
+      document.getElementById('completionPeriodText').textContent = periodInfo.overallPeriodText || '尚無資料';
+      document.getElementById('completionElapsedText').textContent =
+        '讀經統計 ' + Number(periodInfo.elapsedReadingWeeks || 0) + ' 週｜禱告統計 ' + Number(periodInfo.elapsedPrayerDays || 0) + ' 天';
+      document.getElementById('completionTotal').textContent = totalMembers;
+
+      content.innerHTML =
+        renderDistributionBlock('讀經完成週數分布', '以完成週數統計', data.readingBuckets || [], totalMembers, 'reading') +
+        renderDistributionBlock('禱告進度分布', '依漏掉達標天數統計', data.prayerBuckets || [], totalMembers, 'prayer');
     }
 
     function renderDistributionBlock(title, subtitle, buckets, total, mode) {
