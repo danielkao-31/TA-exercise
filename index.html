@@ -2094,7 +2094,7 @@
 
       content.innerHTML =
         renderDistributionBlock('讀經完成週數', '以完成週數統計', data.readingBuckets || [], totalMembers, 'reading') +
-        renderDistributionBlock('個人禱告操練', '依漏掉回報天數統計｜不含今天', data.prayerBuckets || [], totalMembers, 'prayer');
+        renderDistributionBlock('個人禱告操練', '依回報天數統計｜不含今天', data.prayerBuckets || [], totalMembers, 'prayer');
     }
 
     function renderDistributionBlock(title, subtitle, buckets, total, mode) {
