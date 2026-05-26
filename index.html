@@ -33,13 +33,7 @@
     body {
       margin: 0;
       min-height: 100%;
-      font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        "Noto Sans TC",
-        "Microsoft JhengHei",
-        sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
       color: var(--text);
       background:
         radial-gradient(circle at top left, rgba(214, 179, 99, 0.18), transparent 34%),
@@ -745,14 +739,8 @@
       text-align: center;
     }
 
-    .setup-box .field {
-      text-align: center;
-    }
-
-    .setup-box .field label {
-      text-align: center;
-    }
-
+    .setup-box .field,
+    .setup-box .field label,
     .setup-box .input {
       text-align: center;
     }
@@ -1020,13 +1008,11 @@
 
     window.__INITIAL_DATA__ = null;
 
-    const INITIAL_CACHE_KEY = 'rp_initial_cache_v20260526_prayer_followup1';
+    const INITIAL_CACHE_KEY = 'rp_initial_cache_v20260526_auth_guard2';
     const INITIAL_CACHE_TTL_MS = 10 * 60 * 1000;
-    const COMPLETION_CACHE_KEY = 'rp_completion_cache_v20260526_prayer_followup1';
+    const COMPLETION_CACHE_KEY = 'rp_completion_cache_v20260526_auth_guard2';
     const COMPLETION_CACHE_TTL_MS = 5 * 60 * 1000;
-  </script>
 
-  <script>
     const state = {
       members: [],
       readingSchedule: [],
@@ -1041,8 +1027,8 @@
       reportAuthPassed: false,
       reportControlsEnabled: false,
       reportCodeTimer: null,
+      authRequestSeq: 0,
       completionLoaded: false,
-      statusCache: Object.create(null),
       currentPrayerAccumulated: 0,
       initialHydrated: false,
       initialLoading: false
@@ -1076,18 +1062,19 @@
         document.getElementById('reportCode').value = '';
         state.reportAuthRequired = false;
         state.reportAuthPassed = false;
-        handleSelectionChange();
+        handleSelectionChange(false);
       });
 
       document.getElementById('reportName').addEventListener('change', () => {
         document.getElementById('reportCode').value = '';
         state.reportAuthRequired = false;
         state.reportAuthPassed = false;
-        handleSelectionChange();
+        handleSelectionChange(false);
       });
 
       document.getElementById('reportCode').addEventListener('input', () => {
         window.clearTimeout(state.reportCodeTimer);
+        state.authRequestSeq++;
         state.reportAuthPassed = false;
 
         const code = document.getElementById('reportCode').value.trim();
@@ -1133,14 +1120,12 @@
 
       document.getElementById('submitReportBtn').addEventListener('click', submitReport);
       document.getElementById('queryMyBtn').addEventListener('click', queryMyCompletion);
-
       document.getElementById('closeModalBtn').addEventListener('click', closeModal);
       document.getElementById('laterCodeBtn').addEventListener('click', closeModal);
       document.getElementById('saveCodeBtn').addEventListener('click', saveQueryCode);
     }
 
-    function runServer(method, ...args) {
-      const payload = args.length ? args[0] : {};
+    function runServer(method, payload = {}) {
       return fetchJsonp(method, payload);
     }
 
@@ -1149,7 +1134,6 @@
         const callbackName = '__gasApiCallback_' + Date.now() + '_' + Math.random().toString(36).slice(2);
         const script = document.createElement('script');
         const timeoutMs = 25000;
-
         let finished = false;
 
         const cleanup = () => {
@@ -1283,9 +1267,7 @@
           savedAt: Date.now(),
           data
         }));
-      } catch (error) {
-        // localStorage 不可用時不影響主流程。
-      }
+      } catch (error) {}
     }
 
     function readCompletionCache() {
@@ -1315,18 +1297,14 @@
           savedAt: Date.now(),
           data
         }));
-      } catch (error) {
-        // sessionStorage 不可用時不影響主流程。
-      }
+      } catch (error) {}
     }
 
     function clearFrontendCaches() {
       try {
         localStorage.removeItem(INITIAL_CACHE_KEY);
         sessionStorage.removeItem(COMPLETION_CACHE_KEY);
-      } catch (error) {
-        // 不影響主流程。
-      }
+      } catch (error) {}
     }
 
     function hydrateInitialData(data, fromCache) {
@@ -1492,19 +1470,25 @@
       }
     }
 
-    function makeStatusCacheKey(name) {
-      return [
-        getReportSex(),
-        name,
-        document.getElementById('readingWeekSelect').value,
-        document.getElementById('prayerDateSelect').value
-      ].join('||');
+    function isCurrentAuthRequest(seq, sex, name, code, readingWeekNo, prayerDate) {
+      return seq === state.authRequestSeq &&
+        getReportSex() === sex &&
+        document.getElementById('reportName').value === name &&
+        document.getElementById('reportCode').value.trim() === code &&
+        document.getElementById('readingWeekSelect').value === readingWeekNo &&
+        document.getElementById('prayerDateSelect').value === prayerDate;
     }
 
     async function handleSelectionChange(forceServer) {
       const sex = getReportSex();
       const name = document.getElementById('reportName').value;
       const member = getSelectedMember(name, sex);
+      const requestSeq = ++state.authRequestSeq;
+      const requestSex = sex;
+      const requestName = name;
+      const requestCode = document.getElementById('reportCode').value.trim();
+      const requestReadingWeekNo = document.getElementById('readingWeekSelect').value;
+      const requestPrayerDate = document.getElementById('prayerDateSelect').value;
 
       resetInputTouchedState();
       renderReadingPlan();
@@ -1530,14 +1514,13 @@
       }
 
       state.reportAuthRequired = Boolean(member.hasQueryCode);
-      state.reportAuthPassed = !state.reportAuthRequired;
+      state.reportAuthPassed = false;
+      setReportControlsEnabled(false);
 
       if (state.reportAuthRequired) {
         document.getElementById('reportCodeWrap').classList.remove('hidden');
 
-        const code = document.getElementById('reportCode').value.trim();
-
-        if (!code || code.length < 4) {
+        if (!requestCode || requestCode.length < 4) {
           renderAuthRequired('此姓名已設定查詢碼，請先輸入查詢碼');
           return;
         }
@@ -1546,28 +1529,31 @@
         document.getElementById('reportCode').value = '';
       }
 
-      const cacheKey = makeStatusCacheKey(name);
-
-      if (!forceServer && !member.hasQueryCode && state.statusCache[cacheKey]) {
-        state.reportAuthPassed = true;
-        setReportControlsEnabled(true);
-        renderSelectedStatus(state.statusCache[cacheKey]);
-        return;
-      }
-
       try {
         const status = await runServer('getSelectedStatus', {
-          name,
-          queryCode: document.getElementById('reportCode').value.trim(),
-          readingWeekNo: document.getElementById('readingWeekSelect').value,
-          prayerDate: document.getElementById('prayerDateSelect').value
+          name: requestName,
+          queryCode: requestCode,
+          readingWeekNo: requestReadingWeekNo,
+          prayerDate: requestPrayerDate
         });
+
+        if (!isCurrentAuthRequest(
+          requestSeq,
+          requestSex,
+          requestName,
+          requestCode,
+          requestReadingWeekNo,
+          requestPrayerDate
+        )) {
+          return;
+        }
 
         if (status.authRequired && !status.authPassed) {
           renderAuthRequired(status.message || '請輸入查詢碼，驗證後才能回報');
           return;
         }
 
+        state.reportAuthRequired = Boolean(status.authRequired || member.hasQueryCode);
         state.reportAuthPassed = true;
         setReportControlsEnabled(true);
 
@@ -1575,12 +1561,19 @@
           document.getElementById('reportAuthHint').textContent = '查詢碼已驗證，可以回報。';
         }
 
-        if (!member.hasQueryCode) {
-          state.statusCache[cacheKey] = status;
-        }
-
         renderSelectedStatus(status);
       } catch (error) {
+        if (!isCurrentAuthRequest(
+          requestSeq,
+          requestSex,
+          requestName,
+          requestCode,
+          requestReadingWeekNo,
+          requestPrayerDate
+        )) {
+          return;
+        }
+
         state.reportAuthPassed = false;
         renderAuthRequired('查詢碼錯誤，請重新輸入');
         showToast(getErrorMessage(error));
@@ -1867,7 +1860,6 @@
         state.readingTouched = false;
         state.prayerTouched = false;
         state.completionLoaded = false;
-        state.statusCache = Object.create(null);
         clearFrontendCaches();
 
         applySubmitResultToCurrentView(result);
